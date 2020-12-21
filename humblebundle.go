@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -16,29 +16,13 @@ type userOptions struct {
 }
 
 // GetUserGameKeys gets all the game keys for the user
-func GetUserGameKeys(cookie string) ([]string, error) {
-	req, err := http.NewRequest("GET", KeysURL, nil)
+func GetUserGameKeys(client Client) ([]string, error) {
+	resp, err := client.Do("GET", KeysURL, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	req.AddCookie(&http.Cookie{
-		Name:     "_simpleauth_sess",
-		Value:    cookie,
-		Path:     "/",
-		Domain:   ".humblebundle.com",
-		Secure:   true,
-		HttpOnly: true,
-	})
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(string(resp)))
 	if err != nil {
 		return nil, err
 	}
